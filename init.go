@@ -30,6 +30,12 @@ func init() {
 	flag.BoolVar(&cfgtestFlag, "t", false, "config test")
 }
 
+type Config struct {
+	Timeout      time.Duration
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+}
+
 // applications need some way to access the port
 // TODO: this method will work only after grace.Serve is called.
 func GetListenPort(hport string) string {
@@ -82,7 +88,7 @@ func ServerFastHTTP(hport string, handler fasthttp.RequestHandler) error {
 
 // start serving on hport. If running via socketmaster, the hport argument is
 // ignored. Also, if a port was specified via -p, it takes precedence on hport
-func Serve(hport string, handler http.Handler) error {
+func Serve(hport string, handler http.Handler, cfg *Config) error {
 
 	checkConfigTest()
 
@@ -92,11 +98,11 @@ func Serve(hport string, handler http.Handler) error {
 	}
 
 	srv := &graceful.Server{
-		Timeout: 10 * time.Second,
+		Timeout: cfg.Timeout * time.Second,
 		Server: &http.Server{
 			Handler:      handler,
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 10 * time.Second,
+			ReadTimeout:  cfg.ReadTimeout * time.Second,
+			WriteTimeout: cfg.WriteTimeout * time.Second,
 		},
 	}
 
